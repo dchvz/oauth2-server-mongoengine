@@ -1,33 +1,8 @@
 from mongoengine import *
+from .helpers import scope_to_list, list_to_scope
 import json
 import datetime
 connect('test')
-# This class contains the basic auth models for authlib to work: User, Client, Token and Authorization Code
-
-def to_unicode(x, charset='utf-8', errors='strict'):
-    if x is None or isinstance(x, str):
-        return x
-    if isinstance(x, bytes):
-        return x.decode(charset, errors)
-    return str(x)
-
-def list_to_scope(scope):
-    """Convert a list of scopes to a space separated string."""
-    if isinstance(scope, (set, tuple, list)):
-        return " ".join([to_unicode(s) for s in scope])
-    if scope is None:
-        return scope
-    return to_unicode(scope)
-
-
-def scope_to_list(scope):
-    """Convert a space separated string to a list of scopes."""
-    if isinstance(scope, (tuple, list, set)):
-        return [to_unicode(s) for s in scope]
-    elif scope is None:
-        return None
-    return scope.strip().split()
-
 
 class User(Document):
     username = StringField(required=True, max_length=200)
@@ -41,7 +16,6 @@ class User(Document):
 
     def check_password(self, password):
         return password == 'valid'
-
 
 class Client(Document):
     client_id = StringField(required=True, unique=True)
@@ -88,7 +62,6 @@ class Client(Document):
     def has_client_secret(self):
         return bool(self.client_secret)
 
-
 class Token(Document):
     # access_token: a token to authorize the http requests.
     access_token = StringField()
@@ -121,6 +94,11 @@ class Token(Document):
 
     def get_expires_in(self):
         return self.expires_in
+
+    def asdict(self):
+        return {'access_token': self.access_token, 'refresh_token': self.refresh_token, 'client_id': self.client_id,
+        'user_id': self.user_id, 'created_at': self.created_at, 'expires_in': self.expires_in, 'expires_at': self.expires_at,
+        'scope': self.scope, 'revoked': self.revoked,'token_type': self.token_type}
 
 class AuthorizationCode(Document):
     user_id = StringField(required=True, unique=True)

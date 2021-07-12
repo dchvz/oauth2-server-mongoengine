@@ -6,45 +6,34 @@ from authlib.integrations.flask_oauth2 import current_token
 from authlib.oauth2 import OAuth2Error
 from .models import User, Client
 from .oauth2 import server, require_oauth
-import bson
+from .helpers import split_by_crlf
 
 bp = Blueprint('home', __name__)
 
-def split_by_crlf(s):
-    return [v for v in s.splitlines() if v]
-
 def current_user():
-    """ if 'id' in session:
+    if 'id' in session:
         uid = session['id']
-        return User.objects.get(username =='marcus')
-    return None """
-    return User.objects.get(username = 'marcus')
+        return User.objects.get(id = uid)
+    return None
 
 @bp.route('/', methods=('GET', 'POST'))
 def home():
     if request.method == 'POST':
         username = request.form.get('username')
         user = User.objects.filter(username__exact=username).first()
-        print('no user seems to have been found')
         if not user:
             user = User(username=username)
             user.save()
-        print('we are here')
-        print('we are past the register')
-        # if user is not just to log in, but need to head back to the auth page, then go for it
+        session['id'] = str(user.id)
         next_page = request.args.get('next')
-        print('about to go to next page')
         if next_page:
             return redirect(next_page)
         return redirect('/')
     user = current_user()
-    print('the current user is', user)
     if user:
-        print('the cient info')
-        clients = Client.objects.filter(user_id__exact='60e8652b9ac397d1b4b19e56')
+        clients = Client.objects.filter(user_id__exact=str(user.id))
     else:
         clients = []
-    print('about to make a return statement')
     return render_template('home.html', user=user, clients=clients)
 
 # this example is only used for the code authorization grant
@@ -76,9 +65,6 @@ def logout():
 
 @bp.route('/create-client', methods=['GET','POST'])
 def create_client():
-    print('about to create client')
-    print('the form values are', request.form)
-    print('after create client')
     user = current_user()
     if not user:
         return redirect('/')
@@ -86,11 +72,10 @@ def create_client():
         return render_template('create_client.html')
 
     form = request.form
-    print('the form values are', form)
     client_id_issued_at = int(time.time())
     client_id = gen_salt(24)
     client = Client(
-        user_id = '60e8652b9ac397d1b4b19e56',
+        user_id = str(user.id),
         client_id = client_id,
         client_id_issued_at = client_id_issued_at,
         client_name = form['client_name'],
@@ -101,12 +86,10 @@ def create_client():
         allowed_response_types = split_by_crlf(form["response_type"]),
         token_endpoint_auth_method = form['token_endpoint_auth_method'],
     )
-    print('we are here after getting client data')
     if form['token_endpoint_auth_method'] == 'none':
         client.client_secret = ''
     else:
         client.client_secret = gen_salt(48)
-    # TODO CHECK if scope is a list or what, it should be a lsit
     client.save()
     return redirect('/')
 
@@ -119,27 +102,19 @@ def create_user():
     user.save()
     return jsonify('user was successfully saved')
 
-
 @bp.route('/oauth/token', methods=['POST'])
 def issue_token():
     return server.create_token_response()
-
 
 @bp.route('/oauth/revoke', methods=['POST'])
 def revoke_token():
     return server.create_endpoint_response('revocation')
 
-
 @bp.route('/api/me')
 @require_oauth('profile')
 def api_me():
-    # TODO think of a method to obtain the current token for the current user
-    #user = current_token.user
-    user_id = '60e8652b9ac397d1b4b19e56'
-    user_username = 'marcus'
-    #return jsonify(id=user.id, username=user.username)
-    return jsonify(id=user_id, username=user_username)
+    return jsonify('You are authorized to this endpoint')
 
 @bp.route('hello')
 def hello():
-    return jsonify('hello')
+    return jsonify('Hello this is an unprotected endpoint')
