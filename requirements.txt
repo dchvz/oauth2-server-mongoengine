@@ -1,0 +1,12 @@
+Authlib==0.15.4
+cffi==1.14.6
+click==8.0.1
+cryptography==3.4.7
+Flask==2.0.1
+itsdangerous==2.0.1
+Jinja2==3.0.1
+MarkupSafe==2.0.1
+mongoengine==0.23.1
+pycparser==2.20
+pymongo==3.11.4
+Werkzeug==2.0.1
