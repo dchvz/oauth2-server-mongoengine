@@ -64,6 +64,10 @@ Now you can access `/api/me`:
 $ curl -H "Authorization: Bearer ${access_token}" http://127.0.0.1:5000/api/me
 ```
 
+## POSTMAN's requests
+
+You may import the postman's request from request_examples folder to make use of this project. You can do so like this https://kb.datamotion.com/?ht_kb=postman-instructions-for-exporting-and-importing
+
 For now, you can read the source in example or follow the long boring tutorial below.
 
 **IMPORTANT**: To test implicit grant, you need to `token_endpoint_auth_method` to `none`.
