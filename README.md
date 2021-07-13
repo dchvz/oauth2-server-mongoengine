@@ -1,6 +1,6 @@
 # OAuth 2.0 Provider with Flask & MongoDB
 
-This is an example of OAuth 2.0 server in [Authlib](https://authlib.org/) that uses mongoengine as the database
+This is an example of OAuth 2.0 server in [Authlib](https://authlib.org/) that uses mongoDB as the database with mongoengine
 
 - Documentation: <https://docs.authlib.org/en/latest/flask/2/>
 - Authlib Repo: <https://github.com/lepture/authlib>
